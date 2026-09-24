@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: pnr-monitor-web
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: PNR_API_URL
+        value: https://api.apimitra.in/train/pnr
+      - key: PNR_API_KEY
+        sync: false
+      - key: PNR_PROVIDER_ENABLED
+        value: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: PNR Monitor <onboarding@resend.dev>
+      - key: APP_URL
+        sync: false
+
+  - type: cron
+    name: pnr-monitor-hourly
+    runtime: node
+    schedule: "0 * * * *"
+    buildCommand: npm ci
+    startCommand: npm run monitor
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: PNR_API_URL
+        value: https://api.apimitra.in/train/pnr
+      - key: PNR_API_KEY
+        sync: false
+      - key: PNR_PROVIDER_ENABLED
+        value: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: PNR Monitor <onboarding@resend.dev>

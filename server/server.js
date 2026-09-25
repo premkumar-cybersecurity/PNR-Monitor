@@ -147,15 +147,36 @@ app.get("/api/pnrs/:id/history", async (req, res) => {
 
 app.post("/api/monitor/run", async (req, res) => {
   try {
+    const monitorSecret = process.env.MONITOR_SECRET;
+    const suppliedSecret = req.get("X-Monitor-Secret");
+
+    if (!monitorSecret) {
+      console.error("[MONITOR] MONITOR_SECRET is not configured.");
+      return res.status(500).json({
+        success: false,
+        error: "Monitor secret is not configured."
+      });
+    }
+
+    if (suppliedSecret !== monitorSecret) {
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized."
+      });
+    }
+
     await checkAllPNRs();
+
     res.json({
       success: true,
       message: "Monitoring check completed."
     });
   } catch (error) {
+    console.error("[API] Monitor:", error);
+
     res.status(500).json({
       success: false,
-      error: error.message
+      error: "Monitoring check failed."
     });
   }
 });

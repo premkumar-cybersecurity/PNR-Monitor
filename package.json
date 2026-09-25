@@ -5,7 +5,7 @@
   "description": "Small PNR monitoring website with hourly status checks and email notifications.",
   "main": "server.js",
   "scripts": {
-    "start": "node server/server.js",
+    "start": "node server.js",
     "monitor": "node server/run-monitor.js"
   },
   "dependencies": {

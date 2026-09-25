@@ -14,7 +14,7 @@ app.disable("x-powered-by");
 
 app.use(cors());
 app.use(express.json({ limit: "20kb" }));
-app.use(express.static(path.join(__dirname, "../client")));
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -162,7 +162,11 @@ app.post("/api/monitor/run", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`PNR Monitor running at http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`PNR Monitor running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
 

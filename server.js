@@ -1,5 +1,8 @@
 const express = require("express");
 
-const app = require("./server/server");
+const app = express();
+const serverApp = require("./server/server");
+
+app.use(serverApp);
 
 module.exports = app;

@@ -38,7 +38,36 @@ async function checkPNR(pnrNumber) {
     trainNumber: data.train_number || null,
     trainName: data.train_name || null,
     journeyDate: convertDate(data.travel_date),
-    currentStatus
+    currentStatus,
+    fromStation: normalizeStation(data.from),
+    toStation: normalizeStation(data.to),
+    chartPrepared: data.chart_prepared === true
+  };
+}
+
+function normalizeStation(value) {
+  if (!value) return null;
+
+  // API Mitra currently returns stations as { code, name }. Keep the
+  // normalization tolerant so a provider fallback returning a plain string
+  // or alternate property names does not remove the route from the UI.
+  if (typeof value === "string") {
+    const text = value.trim();
+    if (!text) return null;
+
+    const match = text.match(/^(.*?)[\s(\-]*([A-Z]{2,5})$/);
+    if (match) {
+      return { name: match[1].trim() || text, code: match[2] || null };
+    }
+
+    return { name: text, code: null };
+  }
+
+  if (typeof value !== "object") return null;
+
+  return {
+    code: value.code || value.station_code || value.code_name || null,
+    name: value.name || value.station_name || value.station || null
   };
 }
 

@@ -3,66 +3,278 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Simple PNR monitoring dashboard">
-  <title>PNR Monitor</title>
+  <meta name="description" content="PNR Monitor — automatic hourly PNR status monitoring with email alerts. Track reservation changes and get notified by email.">
+  <meta name="theme-color" content="#07090c">
+
+  <title>PNR Monitor — Track. Notify. Travel Smarter.</title>
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PNR Monitor">
+  <meta property="og:title" content="PNR Monitor — Track. Notify. Travel Smarter.">
+  <meta property="og:description" content="Monitor your railway PNR automatically every hour and get an email when the reservation status changes.">
+  <meta property="og:url" content="https://pnr-monitor.vercel.app/">
+  <meta property="og:image" content="https://pnr-monitor.vercel.app/assets/og-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="PNR Monitor — automatic railway PNR monitoring">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PNR Monitor — Track. Notify. Travel Smarter.">
+  <meta name="twitter:description" content="Monitor your railway PNR automatically every hour and get an email when the reservation status changes.">
+  <meta name="twitter:image" content="https://pnr-monitor.vercel.app/assets/og-preview.png">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/train-icon-user.png">
+  <link rel="apple-touch-icon" href="assets/brand/train-icon-user.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="container">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">PNR MONITOR</p>
-        <h1>Track your PNR automatically.</h1>
-        <p class="subtitle">Up to 10 PNRs · Hourly checks · Status history</p>
-      </div>
-      <div id="healthBadge" class="badge">Checking server...</div>
-    </header>
+  <div class="noise" aria-hidden="true"></div>
 
-    <section class="card">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">NEW MONITOR</p>
-          <h2>Add a PNR</h2>
+  <header class="site-header" id="top">
+    <div class="shell nav-shell">
+      <a class="brand" href="#top" aria-label="PNR Monitor home">
+        <img src="assets/brand/train-icon-user.png" alt="" class="brand-train-icon">
+        <span class="brand-copy"><strong>PNR Monitor</strong><small>TRACK. NOTIFY. TRAVEL SMARTER.</small></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a class="nav-link active" href="#dashboard" data-nav-target="dashboard" aria-current="page">Dashboard</a>
+        <a class="nav-link" href="#pnrs" data-nav-target="pnrs">My PNRs</a>
+        <a class="nav-link" href="#history" data-nav-target="history">History</a>
+        <a class="nav-link" href="#how-it-works" data-nav-target="how-it-works">How it works</a>
+        <a class="nav-link" href="#help" data-nav-target="help">Help</a>
+      </nav>
+
+      <div class="nav-actions">
+        <div class="system-pill" id="healthBadge"><span class="status-dot"></span><span>Checking system</span></div>
+        <button class="icon-button" id="navRefreshButton" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">
+          <img src="assets/icons/icon-refresh.svg" alt="">
+        </button>
+        <button class="icon-button mobile-menu-button" id="mobileMenuButton" type="button" aria-label="Open navigation" aria-expanded="false" title="Open navigation">
+          <span class="menu-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation" hidden>
+      <a href="#dashboard" data-nav-target="dashboard">Dashboard</a>
+      <a href="#pnrs" data-nav-target="pnrs">My PNRs</a>
+      <a href="#history" data-nav-target="history">History</a>
+      <a href="#how-it-works" data-nav-target="how-it-works">How it works</a>
+      <a href="#help" data-nav-target="help">Help</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="dashboard">
+      <div class="hero-media" aria-hidden="true"></div>
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="shell hero-inner">
+        <div class="hero-copy">
+          <div class="eyebrow-line"><span class="eyebrow-mark"></span><span>INDIAN RAILWAYS / PNR CONTROL</span></div>
+          <h1>Track your journey<br><span>without the guesswork.</span></h1>
+          <p class="hero-subtitle">Add a PNR once. We check it automatically every hour and email you when the reservation status changes.</p>
+          <div class="hero-points">
+            <div class="hero-point"><span class="point-icon"><img src="assets/icons/icon-email.svg" alt=""></span><span><b>Instant email alerts</b><small>Only when your status changes</small></span></div>
+            <div class="hero-point"><span class="point-icon"><img src="assets/icons/icon-clock.svg" alt=""></span><span><b>Automatic monitoring</b><small>Hourly status checks</small></span></div>
+            <div class="hero-point"><span class="point-icon"><img src="assets/icons/icon-security.svg" alt=""></span><span><b>Secure workflow</b><small>Protected monitor endpoint</small></span></div>
+          </div>
         </div>
-        <span id="countBadge" class="count">0 / 10</span>
+
+        <aside class="hero-ticket" aria-label="PNR monitoring summary">
+          <div class="hero-ticket-head">
+            <span>LIVE MONITORING</span>
+            <span class="mini-live"><i></i> ONLINE</span>
+          </div>
+          <div class="ticket-rule"></div>
+          <div class="ticket-label">YOUR NEXT UPDATE</div>
+          <div class="ticket-value">EVERY HOUR</div>
+          <div class="ticket-meta-row">
+            <span><b>10</b> max PNRs</span>
+            <span><b>EMAIL</b> alerts</span>
+          </div>
+        </aside>
       </div>
 
-      <form id="pnrForm">
-        <label>
-          PNR number
-          <input id="pnrNumber" inputmode="numeric" maxlength="10"
-                 placeholder="10-digit PNR" autocomplete="off" required>
-        </label>
-
-        <label>
-          Notification email
-          <input id="email" type="email"
-                 placeholder="you@example.com" autocomplete="email" required>
-        </label>
-
-        <button id="addButton" type="submit">Start monitoring</button>
-      </form>
-
-      <p id="message" class="message"></p>
+      <div class="shell hero-form-wrap" id="add-pnr">
+        <section class="add-card">
+          <div class="add-visual">
+            <div class="add-visual-glow" aria-hidden="true"></div>
+            <img src="assets/graphics/pnr-search.png" alt="PNR search illustration">
+          </div>
+          <div class="add-content">
+            <div class="section-kicker">START MONITORING</div>
+            <div class="add-title-row">
+              <div>
+                <h2>Add a new PNR</h2>
+                <p>Enter a 10-digit PNR and the email that should receive status alerts.</p>
+              </div>
+              <span id="countBadge" class="limit-badge">0 / 10 active</span>
+            </div>
+            <form id="pnrForm" class="pnr-form" novalidate>
+              <label class="field">
+                <span>PNR Number</span>
+                <div class="field-wrap"><img src="assets/icons/icon-search.svg" alt=""><input id="pnrNumber" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="Enter 10-digit PNR" required></div>
+              </label>
+              <label class="field">
+                <span>Notification Email</span>
+                <div class="field-wrap"><img src="assets/icons/icon-email.svg" alt=""><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+              </label>
+              <button class="primary-button" id="addButton" type="submit"><img src="assets/icons/icon-add.svg" alt="">Add PNR</button>
+            </form>
+            <div class="form-feedback" id="message" role="status" aria-live="polite"></div>
+          </div>
+        </section>
+      </div>
     </section>
 
-    <section class="card">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">MONITORING</p>
-          <h2>Your PNRs</h2>
-        </div>
-        <button id="refreshButton" class="secondary">Refresh</button>
+    <section class="shell stats-strip" aria-label="Monitoring statistics">
+      <div class="metric-card">
+        <div class="metric-icon"><img src="assets/icons/icon-database.svg" alt=""></div>
+        <div><span class="metric-label">ACTIVE PNRS</span><strong id="metricActive">0 / 10</strong><small>Currently monitored</small></div>
       </div>
-
-      <div id="pnrList" class="list">Loading...</div>
+      <div class="metric-card">
+        <div class="metric-icon"><img src="assets/icons/icon-stats.svg" alt=""></div>
+        <div><span class="metric-label">WAITLISTED</span><strong id="metricWaitlist">0</strong><small>Active journeys</small></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon"><img src="assets/icons/icon-history.svg" alt=""></div>
+        <div><span class="metric-label">STATUS MOVEMENTS</span><strong id="metricChanges">—</strong><small>Recorded in history</small></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon"><img src="assets/icons/icon-clock.svg" alt=""></div>
+        <div><span class="metric-label">LATEST CHECK</span><strong id="metricChecked">—</strong><small>Indian Standard Time</small></div>
+      </div>
     </section>
 
-    <footer>
-      <span>PNR Monitor V1</span>
-      <span>Hourly monitoring</span>
-    </footer>
+    <section class="shell section-block" id="pnrs">
+      <div class="section-heading">
+        <div>
+          <div class="section-kicker">ACTIVE JOURNEYS</div>
+          <h2>Your monitored PNRs</h2>
+          <p>Every monitored journey is shown as a live boarding pass.</p>
+        </div>
+        <div class="section-tools">
+          <span class="updated-time" id="updatedTime">Not updated yet</span>
+          <button class="secondary-button" id="refreshButton" type="button"><img src="assets/icons/icon-refresh.svg" alt="">Refresh</button>
+        </div>
+      </div>
+      <div id="pnrList" class="pnr-stack" aria-live="polite"></div>
+    </section>
+
+    <section class="shell section-block history-section" id="history">
+      <div class="section-heading">
+        <div>
+          <div class="section-kicker">STATUS TIMELINE</div>
+          <h2>Recent update history</h2>
+          <p>See actual reservation status changes across your monitored journeys. Routine hourly checks that do not change the status are shown by each PNR’s “Last checked” time, not repeated here.</p>
+        </div>
+        <button class="secondary-button" id="viewAllHistoryButton" type="button"><img src="assets/icons/icon-history.svg" alt="">View history</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+
+
+    <section class="split-feature shell" id="how-it-works">
+      <div class="feature-image">
+        <img src="assets/backgrounds/secondary-railway-scene.png" alt="Night railway station">
+        <div class="feature-image-overlay"></div>
+        <div class="feature-caption"><span>THE MONITORING LOOP</span><b>Check. Compare. Notify.</b></div>
+      </div>
+      <div class="feature-copy">
+        <div class="section-kicker">HOW IT WORKS</div>
+        <h2>One entry.<br>Continuous monitoring.</h2>
+        <p>Your PNR stays monitored until a terminal journey point is reached. The system checks the latest reservation status every hour, updates the record, stores status history, sends the relevant email, and then stops automatically after confirmation, chart preparation, or the journey date.</p>
+        <div class="workflow">
+          <div class="workflow-step"><span>01</span><div><b>Add PNR</b><small>Save the PNR with your notification email.</small></div></div>
+          <div class="workflow-step"><span>02</span><div><b>Hourly check</b><small>Fetch the current passenger status from the provider.</small></div></div>
+          <div class="workflow-step"><span>03</span><div><b>Compare status</b><small>Detect a movement such as GNWL 31 → GNWL 30.</small></div></div>
+          <div class="workflow-step"><span>04</span><div><b>Email alert</b><small>Notify you when the status actually changes.</small></div></div>
+          <div class="workflow-step"><span>05</span><div><b>Monitoring completes</b><small>After confirmation, chart preparation, or the journey date, the monitor stops automatically.</small></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell help-section" id="help">
+      <div class="section-heading help-heading">
+        <div>
+          <div class="section-kicker">HELP &amp; SUPPORT</div>
+          <h2>Everything you need to know.</h2>
+          <p>Practical answers about monitoring, email alerts, status history, and when a journey leaves active monitoring.</p>
+        </div>
+        <a class="secondary-button help-contact" href="https://premkumar-portfolio-kohl.vercel.app/#contact" target="_blank" rel="noopener noreferrer">
+          <img src="assets/icons/icon-email.svg" alt="">Contact Prem Kumar
+        </a>
+      </div>
+
+      <div class="help-grid">
+        <article class="help-card">
+          <div class="help-number">01</div>
+          <div class="section-kicker">MONITORING</div>
+          <h3>How often is my PNR checked?</h3>
+          <p>The scheduler triggers the monitor once every hour. The PNR card's <strong>Last checked</strong> value shows the latest successful monitoring check.</p>
+        </article>
+
+        <article class="help-card">
+          <div class="help-number">02</div>
+          <div class="section-kicker">EMAIL ALERTS</div>
+          <h3>When will I receive an email?</h3>
+          <p>You receive an email when a real reservation status movement is detected. Routine hourly checks with no status change do not generate repeated emails.</p>
+        </article>
+
+        <article class="help-card">
+          <div class="help-number">03</div>
+          <div class="section-kicker">AUTO-COMPLETE</div>
+          <h3>When does monitoring stop?</h3>
+          <p>Monitoring completes after confirmation, chart preparation, or when the journey date is reached. You can also stop a PNR manually at any time.</p>
+        </article>
+
+        <article class="help-card">
+          <div class="help-number">04</div>
+          <div class="section-kicker">LIMIT</div>
+          <h3>How many PNRs can I monitor?</h3>
+          <p>The dashboard supports up to <strong>10 active PNRs</strong>. Stopped or completed journeys no longer count toward the active limit.</p>
+        </article>
+
+        <article class="help-card">
+          <div class="help-number">05</div>
+          <div class="section-kicker">ROUTE DATA</div>
+          <h3>Where do Origin and Destination come from?</h3>
+          <p>The route is read from the live PNR provider response and shown with the station name and code on the boarding pass.</p>
+        </article>
+
+        <article class="help-card help-card-contact">
+          <div class="help-number">06</div>
+          <div class="section-kicker">CONTACT</div>
+          <h3>Need help with something else?</h3>
+          <p>Use Prem Kumar's portfolio contact page for questions, feedback, collaboration, or technical support.</p>
+          <a class="help-inline-link" href="https://premkumar-portfolio-kohl.vercel.app/#contact" target="_blank" rel="noopener noreferrer">Open contact page →</a>
+        </article>
+      </div>
+    </section>
   </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <div class="footer-brand"><img src="assets/brand/train-icon-user.png" alt="" class="footer-train-icon"><div><strong>PNR Monitor</strong><small>TRACK. NOTIFY. TRAVEL SMARTER.</small></div></div>
+      <div class="footer-links"><a href="#dashboard">Dashboard</a><a href="#pnrs">My PNRs</a><a href="#history">History</a><a href="#how-it-works">How it works</a><a href="#help">Help</a></div>
+      <div class="footer-note">Automatic monitoring · Email alerts · 10 PNR limit</div>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog"><img src="assets/icons/icon-close.svg" alt=""></button>
+      <div id="modalBody"></div>
+    </section>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
   <script src="app.js"></script>
 </body>

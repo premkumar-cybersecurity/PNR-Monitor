@@ -8,6 +8,13 @@ create table if not exists public.pnrs (
     previous_status text,
     current_status text,
     last_checked_at timestamptz,
+    from_station_name text,
+    from_station_code text,
+    to_station_name text,
+    to_station_code text,
+    chart_prepared boolean not null default false,
+    monitor_stop_reason text,
+    monitor_stopped_at timestamptz,
     active boolean not null default true,
     created_at timestamptz not null default now()
 );

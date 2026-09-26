@@ -6,7 +6,7 @@
   <meta name="description" content="PNR Monitor — automatic hourly PNR status monitoring with email alerts. Track reservation changes and get notified by email.">
   <meta name="theme-color" content="#07090c">
 
-  <title>PNR Monitor — Track. Notify. Travel Smarter.</title>
+  <title>PNR Monitor by Prem</title>
 
   <!-- Open Graph / Social Sharing -->
   <meta property="og:type" content="website">
@@ -25,12 +25,13 @@
   <meta name="twitter:description" content="Monitor your railway PNR automatically every hour and get an email when the reservation status changes.">
   <meta name="twitter:image" content="https://pnr-monitor.vercel.app/assets/og-preview.png">
 
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/train-icon-user.png">
-  <link rel="apple-touch-icon" href="assets/brand/train-icon-user.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/brand/train-icon-user-favicon.png?v=13">
+<link rel="apple-touch-icon" href="assets/brand/train-icon-user-favicon.png?v=13">
+<link rel="preload" as="image" href="assets/backgrounds/hero-train-station.webp?v=13">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -38,7 +39,7 @@
   <header class="site-header" id="top">
     <div class="shell nav-shell">
       <a class="brand" href="#top" aria-label="PNR Monitor home">
-        <img src="assets/brand/train-icon-user.png" alt="" class="brand-train-icon">
+        <img src="assets/brand/train-icon-user.webp" alt="" class="brand-train-icon">
         <span class="brand-copy"><strong>PNR Monitor</strong><small>TRACK. NOTIFY. TRAVEL SMARTER.</small></span>
       </a>
 
@@ -105,7 +106,7 @@
         <section class="add-card">
           <div class="add-visual">
             <div class="add-visual-glow" aria-hidden="true"></div>
-            <img src="assets/graphics/pnr-search.png" alt="PNR search illustration">
+            <img src="assets/graphics/pnr-search.webp" alt="PNR search illustration" loading="lazy" decoding="async">
           </div>
           <div class="add-content">
             <div class="section-kicker">START MONITORING</div>
@@ -182,7 +183,7 @@
 
     <section class="split-feature shell" id="how-it-works">
       <div class="feature-image">
-        <img src="assets/backgrounds/secondary-railway-scene.png" alt="Night railway station">
+        <img src="assets/backgrounds/secondary-railway-scene.webp" alt="Night railway station" loading="lazy" decoding="async">
         <div class="feature-image-overlay"></div>
         <div class="feature-caption"><span>THE MONITORING LOOP</span><b>Check. Compare. Notify.</b></div>
       </div>
@@ -261,7 +262,7 @@
 
   <footer class="site-footer">
     <div class="shell footer-inner">
-      <div class="footer-brand"><img src="assets/brand/train-icon-user.png" alt="" class="footer-train-icon"><div><strong>PNR Monitor</strong><small>TRACK. NOTIFY. TRAVEL SMARTER.</small></div></div>
+      <div class="footer-brand"><img src="assets/brand/train-icon-user.webp" alt="" class="footer-train-icon"><div><strong>PNR Monitor</strong><small>TRACK. NOTIFY. TRAVEL SMARTER.</small></div></div>
       <div class="footer-links"><a href="#dashboard">Dashboard</a><a href="#pnrs">My PNRs</a><a href="#history">History</a><a href="#how-it-works">How it works</a><a href="#help">Help</a></div>
       <div class="footer-note">Automatic monitoring · Email alerts · 10 PNR limit</div>
     </div>
@@ -276,6 +277,6 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=13" defer></script>
 </body>
 </html>

@@ -2,7 +2,9 @@ const state = {
   pnrs: [],
   histories: new Map(),
   historyRecords: [],
-  lastLoadedAt: null
+  lastLoadedAt: null,
+  routeHydrationQueued: false,
+  routeHydratedIds: new Set()
 };
 
 const els = {
@@ -48,41 +50,47 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "Asia/Kolkata"
+});
+
+const timeFormatter = new Intl.DateTimeFormat("en-IN", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "Asia/Kolkata"
+});
+
+const journeyDateFormatter = new Intl.DateTimeFormat("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "Asia/Kolkata"
+});
+
 function fmtDateTime(value) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Asia/Kolkata"
-  }).format(date);
+  return dateTimeFormatter.format(date);
 }
 
 function fmtTime(value) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Asia/Kolkata"
-  }).format(date);
+  return timeFormatter.format(date);
 }
 
 function formatJourneyDate(value) {
   if (!value) return "Unknown";
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Kolkata"
-  }).format(date);
+  return journeyDateFormatter.format(date);
 }
 
 function parseStatus(status) {
@@ -171,7 +179,7 @@ function renderRoute(pnr) {
         <span class="route-node route-node-start" aria-hidden="true"></span>
         <span class="route-node route-node-end" aria-hidden="true"></span>
         <span class="route-scan-line" aria-hidden="true"></span>
-        <img class="route-train" src="assets/graphics/train-side.png" alt="Train on route">
+        <img class="route-train" src="assets/graphics/train-side.webp" alt="Train on route">
         <span class="route-arrow" aria-hidden="true">→</span>
       </div>
       <div class="route-station route-station-to">
@@ -201,16 +209,6 @@ function setRefreshBusy(button, busy) {
   if (img) img.classList.toggle("spin", busy);
 }
 
-async function loadHealth() {
-  try {
-    const result = await api("/api/health");
-    els.healthBadge.innerHTML = `<span class="status-dot"></span><span>${result.providerEnabled ? "System online" : "Provider not configured"}</span>`;
-    if (!result.providerEnabled) els.healthBadge.style.color = "#f6bf2f";
-  } catch {
-    els.healthBadge.innerHTML = `<span class="status-dot" style="background:#ff5c64;box-shadow:0 0 12px rgba(255,92,100,.5)"></span><span>Server unavailable</span>`;
-  }
-}
-
 function calculateMetrics() {
   const active = state.pnrs.length;
   const waitlisted = state.pnrs.filter(p => parseStatus(p.current_status).kind === "wl").length;
@@ -236,41 +234,100 @@ function calculateMetrics() {
 }
 
 async function loadPNRs() {
-  const result = await api("/api/pnrs");
-  state.pnrs = Array.isArray(result.pnrs) ? result.pnrs : [];
+  const result = await api("/api/dashboard");
 
-  await Promise.all([loadAllHistories(), loadAllHistoryRecords()]);
+  state.pnrs = Array.isArray(result.pnrs) ? result.pnrs : [];
+  state.historyRecords = meaningfulHistoryItems(
+    Array.isArray(result.historyRecords) ? result.historyRecords : [],
+    { includeInitial: false }
+  );
+
+  const historyMap = new Map();
+  for (const pnr of state.pnrs) {
+    const items = Array.isArray(result.histories?.[String(pnr.id)])
+      ? result.histories[String(pnr.id)]
+      : [];
+    historyMap.set(String(pnr.id), meaningfulHistoryItems(items, { includeInitial: true }));
+  }
+  state.histories = historyMap;
+
+  // The dashboard is rendered immediately from Supabase data. Any missing
+  // route is fetched in the background so the initial page is not blocked by
+  // external API calls.
+  els.healthBadge.innerHTML = `
+    <span class="status-dot" style="${result.providerEnabled ? "" : "background:#f6bf2f;box-shadow:none"}"></span>
+    <span>${result.providerEnabled ? "System online" : "Provider not configured"}</span>
+  `;
 
   renderPNRs();
   renderHistory();
-  calculateMetrics();
+
   state.lastLoadedAt = new Date();
-  els.updatedTime.textContent = `Last updated ${fmtDateTime(state.lastLoadedAt)}`;
+  calculateMetrics();
   syncActiveNavigation();
+
+  queueMissingRouteHydration(
+    Array.isArray(result.routeMissingIds) ? result.routeMissingIds : []
+  );
 }
 
-async function loadAllHistories() {
-  const results = await Promise.all(state.pnrs.map(async pnr => {
-    try {
-      const result = await api(`/api/pnrs/${pnr.id}/history`);
-      return [String(pnr.id), meaningfulHistoryItems(result.history, { includeInitial: true })];
-    } catch {
-      return [String(pnr.id), []];
-    }
-  }));
-  state.histories = new Map(results);
-}
+function queueMissingRouteHydration(ids) {
+  if (state.routeHydrationQueued || !ids.length) return;
 
-async function loadAllHistoryRecords() {
-  try {
-    const result = await api("/api/history");
-    state.historyRecords = meaningfulHistoryItems(
-      Array.isArray(result.history) ? result.history.filter(item => item.pnr) : [],
-      { includeInitial: false }
-    );
-  } catch {
-    state.historyRecords = [];
+  const pendingIds = ids
+    .map(Number)
+    .filter(Number.isFinite)
+    .filter(id => !state.routeHydratedIds.has(id));
+
+  if (!pendingIds.length) return;
+
+  state.routeHydrationQueued = true;
+
+  const run = () => {
+    state.routeHydrationQueued = false;
+    hydrateMissingRoutesInBackground(pendingIds).catch(() => {});
+  };
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(run, { timeout: 1800 });
+  } else {
+    window.setTimeout(run, 900);
   }
+}
+
+async function hydrateMissingRoutesInBackground(ids) {
+  // Keep provider traffic small. Two concurrent route lookups are enough
+  // because route hydration is a one-time compatibility operation.
+  let cursor = 0;
+
+  let changed = false;
+
+  const worker = async () => {
+    while (cursor < ids.length) {
+      const id = ids[cursor++];
+      if (state.routeHydratedIds.has(id)) continue;
+
+      state.routeHydratedIds.add(id);
+
+      try {
+        const result = await api(`/api/pnrs/${id}/refresh-route`, { method: "POST" });
+        const pnr = state.pnrs.find(item => Number(item.id) === id);
+        if (!pnr || !result.route) continue;
+
+        pnr.from_station_name = result.route.from_station_name || pnr.from_station_name || null;
+        pnr.from_station_code = result.route.from_station_code || pnr.from_station_code || null;
+        pnr.to_station_name = result.route.to_station_name || pnr.to_station_name || null;
+        pnr.to_station_code = result.route.to_station_code || pnr.to_station_code || null;
+        changed = true;
+      } catch {
+        // Route hydration is intentionally non-blocking. A failed lookup
+        // should never make the dashboard wait or appear broken.
+      }
+    }
+  };
+
+  await Promise.all([worker(), worker()]);
+  if (changed) renderPNRs();
 }
 
 function renderPNRs() {
@@ -334,7 +391,7 @@ function createPNRCard(pnr) {
 
         <div class="ticket-right">
           <div class="ticket-right-top">
-            <div class="ticket-visual"><img src="assets/graphics/train-side.png" alt="Train illustration"></div>
+            <div class="ticket-visual"><img src="assets/graphics/train-side.webp" alt="Train illustration" loading="lazy" decoding="async"></div>
             <div class="ticket-date"><span>JOURNEY</span><b>${escapeHtml(formatJourneyDate(pnr.journey_date))}</b></div>
           </div>
           <div class="last-check"><b>Last checked</b><br>${escapeHtml(lastChecked)}<br><span>Automatic hourly monitoring</span></div>
@@ -472,7 +529,7 @@ async function refreshDashboard() {
   setRefreshBusy(els.refreshButton, true);
   setRefreshBusy(els.navRefreshButton, true);
   try {
-    await Promise.all([loadHealth(), loadPNRs()]);
+    await loadPNRs();
   } catch (error) {
     els.pnrList.innerHTML = `<div class="empty-state"><img src="assets/states/error.svg" alt=""><h3>Unable to load PNRs</h3><p>${escapeHtml(error.message)}</p><button class="secondary-button" type="button" id="retryButton"><img src="assets/icons/icon-refresh.svg" alt="">Try again</button></div>`;
     document.getElementById("retryButton")?.addEventListener("click", refreshDashboard);
